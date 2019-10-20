@@ -1,0 +1,40 @@
+[
+  {
+    "PrimaryID": "000574",
+    "supplierName": "Newell Rubbermaid",
+    "supplierNumber": "9",
+    "tradePrice": "15.68",
+    "sellPackWeightG": "105",
+    "description": "Some great product",
+    "countryOfOrigin": "Mexico",
+
+    "Dimensions": "210x297mm",
+    "Type": "Ballpoint & Rollerball Pens",
+    "Manufacturer": "Newell Rubbermaid",
+    "Color": "Blue",
+    "On Promotion": "No",
+    "Recycled Percentage": "0.55",
+
+    "imagesType": [
+      "JPEG",
+      "PNG"
+    ],
+    "imageURL": [
+      "https://example.com/image000574-1.jpg",
+      "https://example.com/image000574-2.png"
+    ],
+    "imageSortOrder": [
+      1,
+      2
+    ],
+    "datasheetType": [
+      "PDF"
+    ],
+    "datasheetURL": [
+      "https://example.com/manual000574.pdf"
+    ],
+    "datasheetSortOrder": [
+      1
+    ]
+  }
+]

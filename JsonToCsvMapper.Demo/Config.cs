@@ -6,9 +6,9 @@ namespace JsonToCsvMapper.Demo
     {
         public static class Storage
         {
-            public static string TempFilesPath
+            public static string FilesPath
             {
-                get { return ConfigurationManager.AppSettings["TempFilesPath"]; }
+                get { return ConfigurationManager.AppSettings["FilesPath"]; }
             }
 
             public static string LogFilesPath
@@ -31,43 +31,6 @@ namespace JsonToCsvMapper.Demo
             public static string AuthorizationKey
             {
                 get { return ConfigurationManager.AppSettings["AuthorizationKey"]; }
-            }
-        }
-
-        public static class Ftp
-        {
-            public static class Data
-            {
-                public static string PathComplete
-                {
-                    get { return ConfigurationManager.AppSettings["FTPDataPathComplete"]; }
-                }
-
-                public static string FileNameComplete
-                {
-                    get { return ConfigurationManager.AppSettings["FTPDataFileNameComplete"]; }
-                }
-            }
-
-            public static class Media
-            {
-                public static string PathComplete
-                {
-                    get { return ConfigurationManager.AppSettings["FTPMediaPathComplete"]; }
-                }
-
-                public static string FileNameComplete
-                {
-                    get { return ConfigurationManager.AppSettings["FTPMediaFileNameComplete"]; }
-                }
-            }
-
-            public static class CatalogFile
-            {
-                public static string Path
-                {
-                    get { return ConfigurationManager.AppSettings["FTPCatalogFilePath"]; }
-                }
             }
         }
 

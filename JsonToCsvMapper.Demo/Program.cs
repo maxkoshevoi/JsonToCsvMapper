@@ -69,27 +69,13 @@ namespace JsonToCsvMapper.Demo
         {
             log.WriteLine("• Checking output folder...");
             string path = GetOutputFolder();
-            string catalogfilePath = Path.Combine(path, Config.Ftp.CatalogFile.Path);
-            string txtFolder = Path.Combine(Config.Ftp.Data.PathComplete, Config.Ftp.Data.FileNameComplete.Remove(Config.Ftp.Data.FileNameComplete.LastIndexOf('.')));
-            string txtPath = Path.Combine(path, txtFolder);
-            string mediaFolder = Path.Combine(Config.Ftp.Media.PathComplete, Config.Ftp.Media.FileNameComplete.Remove(Config.Ftp.Media.FileNameComplete.LastIndexOf('.')));
-            string mediaPath = Path.Combine(path, mediaFolder);
-
-            log.WriteLine("• Creating directories if needed...");
-            Directory.CreateDirectory(catalogfilePath);
-            Directory.CreateDirectory(txtPath);
-            Directory.CreateDirectory(mediaPath);
 
             log.WriteLine("• Generating files...");
-            Mapper mainMapper = new Mapper(GetCatalogfileMapping(), Path.Combine(catalogfilePath, "Catalog.txt"));
+            Mapper mainMapper = new Mapper(GetCatalogfileMapping(), Path.Combine(path, "Catalog.txt"));
             List<Mapper> mappers = new List<Mapper>
             {
-                new Mapper(GetCompAttributesMapping(), Path.Combine(txtPath, "CompAttributes.txt")),
-                new Mapper(GetFeaturesMapping(), Path.Combine(txtPath, "Features.txt")),
-                new Mapper(GetOptionsMapping(), Path.Combine(txtPath, "Options.txt")),
-                new Mapper(GetProductsMapping(), Path.Combine(txtPath, "Products.txt")),
-                new Mapper(GetAttributesMapping(), Path.Combine(txtPath, "Attributes.txt")),
-                new Mapper(GetMediaLinksMapping(), Path.Combine(mediaPath, "MediaLinks.txt"), printHeaders: false)
+                new Mapper(GetAttributesMapping(), Path.Combine(path, "Attributes.txt")),
+                new Mapper(GetMediaLinksMapping(), Path.Combine(path, "MediaLinks.txt"), printHeaders: false)
             };
             foreach (Mapper mapper in mappers)
             {
@@ -154,7 +140,7 @@ namespace JsonToCsvMapper.Demo
 
         private static string GetOutputFolder()
         {
-            string path = Config.Storage.TempFilesPath;
+            string path = Config.Storage.FilesPath;
             if (!Directory.Exists(path))
             {
                 //throw new DirectoryNotFoundException($@"Error: directory ""{path}"" doesn`t exists.");
@@ -167,33 +153,25 @@ namespace JsonToCsvMapper.Demo
         private static IEnumerable<JObject> GetDataFromAPI()
         {
             string url = Config.Api.ApiUrl;
-            JObject response;
-            do
+            
+            string jsonResponse = GetMockResponse(url); // SendGetRequest(url)
+            if (string.IsNullOrEmpty(jsonResponse))
             {
-                string jsonResponse = GetMockResoponce(url);
-                if (string.IsNullOrEmpty(jsonResponse))
-                {
-                    throw new Exception("Server didn't return any data.");
-                }
-                response = JObject.Parse(jsonResponse);
+                throw new Exception("Server didn't return any data.");
+            }
+            JArray response = JArray.Parse(jsonResponse);
 
-                url = response["next"].Value<string>();
-                foreach (JObject product in response["data"])
-                {
-                    yield return product;
-                }
+            foreach (JObject product in response)
+            {
+                yield return product;
+            }
 
-                GC.Collect();
-
-                log.WriteLine("{0} retrieved, {1} left", response["count"], response["total"].Value<int>() - response["count"].Value<int>());
-
-            } while (response["count"].Value<int>() < response["total"].Value<int>());
+            GC.Collect();
         }
 
-        static string GetMockResoponce(string url)
+        static string GetMockResponse(string url)
         {
-            // TODO
-            return "";
+            return File.ReadAllText("mockApiResponse.json");
         }
 
         static string SendGetRequest(string url)
@@ -229,130 +207,12 @@ namespace JsonToCsvMapper.Demo
         {
             OrderedDictionary mapping = new OrderedDictionary()
             {
-                { "Prod Code", MappingOptions.BuildMapping("PrimaryID", null, reportIfMissing: true) },
-                { "ORProductID", MappingOptions.BuildMapping("PrimaryID") },
+                { "Product Code", MappingOptions.BuildMapping("PrimaryID", null, reportIfMissing: true) },
                 { "Description", MappingOptions.BuildMapping("description") },
-                { "VATCode", MappingOptions.BuildMapping("VATCode") },
-                { "AltCode", MappingOptions.BuildMapping("altCode") },
-                { "Range", MappingOptions.BuildMapping("range", "0") },
-                { "RangeGroup", MappingOptions.BuildMapping("rangeGroup", "0") },
-                { "RRP", MappingOptions.BuildMapping("RRP", "0") },
+                { "Alias", MappingOptions.BuildConstant("") },
                 { "TradePrice", MappingOptions.BuildMapping("tradePrice", "0") },
-                { "Per", MappingOptions.BuildMapping("per", null, reportIfMissing: true) },
-                { "Pack", MappingOptions.BuildMapping("pack", "0") },
-                { "Reserved", MappingOptions.BuildMapping("reserved") },
-                { "JHProdCode", MappingOptions.BuildMapping("jhProdCode") },
-                { "KingfieldProdCode", MappingOptions.BuildMapping("kingfieldProdCode") },
-                { "SupRef", MappingOptions.BuildMapping("supRef") },
-                { "PriceChange", MappingOptions.BuildMapping("priceChange", "0") },
-                { "SellPackChange", MappingOptions.BuildMapping("sellPackChange", "0") },
-                { "DescriptionChange", MappingOptions.BuildMapping("descriptionChange", "0") },
-                { "NewProduct", MappingOptions.BuildMapping("newProduct", "0") },
-                { "Discontinued", MappingOptions.BuildMapping("discontinued", "0") },
-                { "DiscountException", MappingOptions.BuildMapping("discountException", "0") },
-                { "JulyCatPage", MappingOptions.BuildMapping("JulyCatPage") },
-                { "JulCatItem", MappingOptions.BuildMapping("JulCatItem") },
-                { "JanCatPage", MappingOptions.BuildMapping("janCatPage", "0") },
-                { "JanCatAlpha", MappingOptions.BuildMapping("janCatAlpha") },
-                { "MiniCatPage", MappingOptions.BuildMapping("miniCatPage") },
-                { "MiniCatAlpha", MappingOptions.BuildMapping("miniCatAlpha") },
-                { "FurnCatPage", MappingOptions.BuildMapping("furnCatPage") },
-                { "FurnCatItem", MappingOptions.BuildMapping("furnCatItem") },
-                { "PricingLetter", MappingOptions.BuildMapping("matrixBandPricingLetter") },
-                { "EAN", MappingOptions.BuildMapping("EAN") },
-                { "BossCode", MappingOptions.BuildMapping("bossCode") },
-                { "CatSpecial", MappingOptions.BuildMapping("catSpecial", "0") },
-                { "ECCommodityCode", MappingOptions.BuildMapping("ECCommodityCode") },
-                { "PreviousSepCatPage", MappingOptions.BuildMapping("prevSetCatPage") },
-                { "PreviousSepCatItem", MappingOptions.BuildMapping("prevSepCatItem") },
-                { "FiveStarProduct", MappingOptions.BuildMapping("fiveStarProduct", "0") },
-                { "GroupTable", MappingOptions.BuildMapping("GroupTable") },
-                { "NonReturnable", MappingOptions.BuildMapping("nonReturnable", "0") },
-                { "EnvironmentalCode", MappingOptions.BuildMapping("environmentalCode") },
-                { "Brand", MappingOptions.BuildMapping("brand") },
-                { "CodeColour", MappingOptions.BuildMapping("codeColour") }, // No defaut value! (Magenta?)
-                { "Description105", MappingOptions.BuildMapping("description105") },
                 { "SellPackWeight (kg)", MappingOptions.BuildMapping("sellPackWeightG", "0", (item) => (int.Parse(item) / 1000d).ToString()) },
-                { "ConsumerDeliveryExpectation", MappingOptions.BuildMapping("consumerDeliveryExpectation") },
-                { "NumberinPack", MappingOptions.BuildMapping("numberInPack") },
-                { "CountryOfOrigin", MappingOptions.BuildMapping("countryOfOrigin") },
-                { "PromoCode", MappingOptions.BuildMapping("promoCode") }
-            };
-            return mapping;
-        }
-
-        private static OrderedDictionary GetCompAttributesMapping()
-        {
-            OrderedDictionary mapping = new OrderedDictionary()
-            {
-                { "ProductID", MappingOptions.BuildMapping("PrimaryID") },
-                { "Name", MappingOptions.BuildConstantList(new List<string>()
-                    {
-                        "Type", "Manufacturer", "Colour", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
-                        "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable", "Waste Collection Available", "Totally Chlorine Free",
-                        "Elemental ChLorine Free", "EMAS Accredited", "FSC® Certified", "FSC® Certification No", "PEFC Accredited", "PEFC Accreditation No",
-                        "Nordic Swan Accredited", "IEMA Acorn Scheme", "Paper by Nature", "NAPM Accredited", "ROHS Accredited", "EU Ecolabel Accredited",
-                        "Blue Angel Accredited", "WWF Member", "Rainforest Alliance", "Fairtrade", "EN Standards Accredited", "EN Standard Code",
-                        "WEEE Compliant", "Other Enviro Details", "Top Material (13030605)", "Form (13030606)", "Leg Type(13030607)", "Orientation (13030608)",
-                        "Pedestals (13030609)", "Cable Ports (13030610)", "Cable Management (13030611)", "Frame Colour (13030613)", "Top Thickness (13030631)",
-                        "Floor Levellers (13030632)", "No. of Pedestals (13030633)", "Flat Packed (13030634)", "Marketing Text",
-                    }) },
-                { "Value", MappingOptions.BuildMappingList(new List<string>()
-                    {
-                        "Type", "Manufacturer", "Colour", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
-                        "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable", "Waste Collection Available", "Totally Chlorine Free",
-                        "Elemental ChLorine Free", "EMAS Accredited", "FSC® Certified", "FSC® Certification No", "PEFC Accredited", "PEFC Accreditation No",
-                        "Nordic Swan Accredited", "IEMA Acorn Scheme", "Paper by Nature", "NAPM Accredited", "ROHS Accredited", "EU Ecolabel Accredited",
-                        "Blue Angel Accredited", "WWF Member", "Rainforest Alliance", "Fairtrade", "EN Standards Accredited", "EN Standard Code",
-                        "WEEE Compliant", "Other Enviro Details", "Top Material (13030605)", "Form (13030606)", "Leg Type(13030607)", "Orientation (13030608)",
-                        "Pedestals (13030609)", "Cable Ports (13030610)", "Cable Management (13030611)", "Frame Colour (13030613)", "Top Thickness (13030631)",
-                        "Floor Levellers (13030632)", "No. of Pedestals (13030633)", "Flat Packed (13030634)", "marketingText",
-                    }, null) },
-                { "Group", MappingOptions.BuildConstant("") },
-                { "Sequence", MappingOptions.BuildConstant("1") },
-                { "Level", MappingOptions.BuildConstant("0") },
-                { "Overview", MappingOptions.BuildConstant("1") },
-            };
-            return mapping;
-        }
-
-        private static OrderedDictionary GetFeaturesMapping()
-        {
-            OrderedDictionary mapping = new OrderedDictionary()
-            {
-                { "ProductID", MappingOptions.BuildMapping("PrimaryID") },
-                { "Description", MappingOptions.BuildMappingList(new List<string>
-                    {
-                        "bullet01", "bullet02", "bullet03", "bullet04", "bullet05", "bullet06", "bullet07", "bullet08", "bullet09",
-                        "bullet10", "bullet11",  "bullet12", "bullet13", "bullet14", "bullet15", "bullet16", "bullet17", "bullet18", "bullet19",
-                        "bullet20", "bullet21", "bullet22", "bullet23", "bullet24", "bullet25", "bullet26", "bullet27", "bullet28", "bullet29",
-                        "bullet30", "bullet31", "bullet32", "bullet33", "bullet34", "bullet35",
-                    }, null) },
-                { "Sequence", MappingOptions.BuildConstant("1") },
-            };
-            return mapping;
-        }
-
-        private static OrderedDictionary GetOptionsMapping()
-        {
-            OrderedDictionary mapping = new OrderedDictionary()
-            {
-                { "ProductID", MappingOptions.BuildMapping("PrimaryID") },
-                { "PartNo", MappingOptions.BuildMapping("Non-existing property", null, reportIfMissing: true) },
-                { "OptionID", MappingOptions.BuildMapping("Non-existing property", null) },
-            };
-            return mapping;
-        }
-
-        private static OrderedDictionary GetProductsMapping()
-        {
-            OrderedDictionary mapping = new OrderedDictionary()
-            {
-                { "ProductID", MappingOptions.BuildMapping("PrimaryID") },
-                { "Manufacturer", MappingOptions.BuildMapping("brand") },
-                { "PartNo", MappingOptions.BuildMapping("supRef") },
-                { "Model", MappingOptions.BuildMapping("description105") },
-                { "AliasCode", MappingOptions.BuildMapping("advantiaCode") }
+                { "Country", MappingOptions.BuildMapping("countryOfOrigin") }
             };
             return mapping;
         }
@@ -362,14 +222,17 @@ namespace JsonToCsvMapper.Demo
             OrderedDictionary mapping = new OrderedDictionary()
             {
                 { "ProductID", MappingOptions.BuildMapping("PrimaryID") },
-                { "Name", MappingOptions.BuildConstantList(new List<string>
+                { "Name", MappingOptions.BuildConstantList(new List<string>()
                     {
-                        "Internal Number", "ISPC Code", "Marketing"
+                        "Type", "Manufacturer", "Color", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
+                        "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable",
                     }) },
-                { "Value", MappingOptions.BuildMappingList(new List<string>
+                { "Value", MappingOptions.BuildMappingList(new List<string>()
                     {
-                        "PrimaryID", "bossCode", "marketingText"
-                    }) },
+                        "Type", "Manufacturer", "Color", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
+                        "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable",
+                    }, null) },
+                { "Sequence", MappingOptions.BuildConstant("1") }, // For sorting
             };
             return mapping;
         }
@@ -380,7 +243,7 @@ namespace JsonToCsvMapper.Demo
             {
                 { "ProductId", MappingOptions.BuildMapping("PrimaryID") },
                 { "MediaType", MappingOptions.BuildMappingList(
-                    new List<string> { "imagesType", "datasheetType", "coshhFileType" },
+                    new List<string> { "imagesType", "datasheetType" },
                     action: (value) => {
                         value = value.ToUpper();
                         if (new string[] { "JPEG", "JPG", "PNG", "GIF" }.Contains(value))
@@ -389,15 +252,14 @@ namespace JsonToCsvMapper.Demo
                         }
                         return value;
                     }, arrayItemIndex: null) },
-                { "Placeholder2", MappingOptions.BuildConstant("") },
-                { "Order", MappingOptions.BuildMappingList(new List<string> { "imageSortOrder", "datasheetSortOrder", "coshhSortOrder" }, arrayItemIndex: null) },
-                { "Placeholder4", MappingOptions.BuildConstant("") },
-                { "Description", MappingOptions.BuildConstant("") },
-                { "Placeholder6", MappingOptions.BuildConstant("") },
-                { "Placeholder7", MappingOptions.BuildConstant("") },
-                { "Placeholder8", MappingOptions.BuildConstant("") },
-                { "Placeholder9", MappingOptions.BuildConstant("") },
-                { "Url", MappingOptions.BuildMappingList(new List<string> { "imageURL", "datasheetURL", "coshhURL" }, null, arrayItemIndex: null) },
+                { "Order", MappingOptions.BuildMappingList(new List<string> 
+                    { 
+                        "imageSortOrder", "datasheetSortOrder"
+                    }, arrayItemIndex: null) },
+                { "Url", MappingOptions.BuildMappingList(new List<string> 
+                    { 
+                        "imageURL", "datasheetURL"
+                    }, null, arrayItemIndex: null) },
             };
             return mapping;
         }

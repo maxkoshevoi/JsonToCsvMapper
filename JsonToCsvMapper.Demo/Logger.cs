@@ -41,6 +41,7 @@ namespace JsonToCsvMapper.Demo
         private void AppendFile(string text)
         {
             File.AppendAllText(GetFileName(), text, Encoding.UTF8);
+            Console.Write(text);
         }
 
         private string GetFileName()
