@@ -219,7 +219,7 @@ private static OrderedDictionary GetMediaLinksMapping()
             { 
                 "imageURL", "datasheetURL"
             },
-            null,
+            defaultValue: null,
             arrayItemIndex: null)
         },
     };
