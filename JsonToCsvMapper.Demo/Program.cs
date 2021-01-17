@@ -5,14 +5,16 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace JsonToCsvMapper.Demo
 {
     class Program
     {
-        static Logger log;
-        static StringBuilder reportMissing;
+        static readonly Logger log = new(Config.Storage.LogFilesPath);
+        static readonly StringBuilder reportMissing = new();
         static int missingInOneProductCount;
 
         static void Main()
@@ -21,8 +23,6 @@ namespace JsonToCsvMapper.Demo
             {
                 Directory.CreateDirectory(Config.Storage.LogFilesPath);
             }
-            reportMissing = new StringBuilder();
-            log = new Logger(Config.Storage.LogFilesPath);
             log.WriteLine("• Initializing...");
 
             bool isSuccess = true;
@@ -71,11 +71,11 @@ namespace JsonToCsvMapper.Demo
             string path = GetOutputFolder();
 
             log.WriteLine("• Generating files...");
-            Mapper mainMapper = new Mapper(GetCatalogfileMapping(), Path.Combine(path, "Catalog.txt"));
-            List<Mapper> mappers = new List<Mapper>
+            Mapper mainMapper = new(GetCatalogfileMapping(), Path.Combine(path, "Catalog.txt"));
+            List<Mapper> mappers = new()
             {
-                new Mapper(GetAttributesMapping(), Path.Combine(path, "Attributes.txt")),
-                new Mapper(GetMediaLinksMapping(), Path.Combine(path, "MediaLinks.txt"), printHeaders: false)
+                new(GetAttributesMapping(), Path.Combine(path, "Attributes.txt")),
+                new(GetMediaLinksMapping(), Path.Combine(path, "MediaLinks.txt"), printHeaders: false)
             };
             foreach (Mapper mapper in mappers)
             {
@@ -174,24 +174,20 @@ namespace JsonToCsvMapper.Demo
             return File.ReadAllText("mockApiResponse.json");
         }
 
-        static string SendGetRequest(string url)
+        static async Task<string> SendGetRequest(string url)
         {
+            HttpClient client = new()
+            {
+                Timeout = TimeSpan.FromMinutes(2),
+                DefaultRequestHeaders = { { "Authorization", Config.Api.AuthorizationKey } }
+            };
+
             string response = null;
             for (int i = 0; i < Config.Api.RetryCount; i++)
             {
                 try
                 {
-                    WebRequest webRequest = WebRequest.Create(url);
-                    webRequest.Method = "GET";
-                    webRequest.Timeout = 120000;
-                    webRequest.ContentType = "application/json";
-                    webRequest.Headers.Add("Authorization", Config.Api.AuthorizationKey);
-
-                    using (Stream s = webRequest.GetResponse().GetResponseStream())
-                    using (StreamReader sr = new StreamReader(s))
-                    {
-                        response = sr.ReadToEnd();
-                    }
+                    response = await client.GetStringAsync(url);
                     break;
                 }
                 catch (Exception ex)
@@ -226,12 +222,14 @@ namespace JsonToCsvMapper.Demo
                     {
                         "Type", "Manufacturer", "Color", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
                         "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable",
-                    }) },
+                    }) 
+                },
                 { "Value", MappingOptions.BuildMappingList(new List<string>()
                     {
                         "Type", "Manufacturer", "Color", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
                         "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable",
-                    }, null) },
+                    }, null) 
+                },
                 { "Sequence", MappingOptions.BuildConstant("1") }, // For sorting
             };
             return mapping;
@@ -244,22 +242,29 @@ namespace JsonToCsvMapper.Demo
                 { "ProductId", MappingOptions.BuildMapping("PrimaryID") },
                 { "MediaType", MappingOptions.BuildMappingList(
                     new List<string> { "imagesType", "datasheetType" },
-                    action: (value) => {
-                        value = value.ToUpper();
-                        if (new string[] { "JPEG", "JPG", "PNG", "GIF" }.Contains(value))
+                    action: type => 
+                    {
+                        type = type.ToUpper();
+                        if (new string[] { "JPEG", "JPG", "PNG", "GIF" }.Contains(type))
                         {
-                            value = "IMG";
+                            type = "IMG";
                         }
-                        return value;
-                    }, arrayItemIndex: null) },
+                        return type;
+                    }, 
+                    arrayItemIndex: null) 
+                },
                 { "Order", MappingOptions.BuildMappingList(new List<string> 
                     { 
                         "imageSortOrder", "datasheetSortOrder"
-                    }, arrayItemIndex: null) },
+                    }, arrayItemIndex: null) 
+                },
                 { "Url", MappingOptions.BuildMappingList(new List<string> 
                     { 
                         "imageURL", "datasheetURL"
-                    }, null, arrayItemIndex: null) },
+                    }, 
+                    defaultValue: null, 
+                    arrayItemIndex: null) 
+                },
             };
             return mapping;
         }

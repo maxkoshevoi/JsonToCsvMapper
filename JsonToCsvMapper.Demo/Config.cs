@@ -6,50 +6,27 @@ namespace JsonToCsvMapper.Demo
     {
         public static class Storage
         {
-            public static string FilesPath
-            {
-                get { return ConfigurationManager.AppSettings["FilesPath"]; }
-            }
+            public static string FilesPath => ConfigurationManager.AppSettings[nameof(FilesPath)];
 
-            public static string LogFilesPath
-            {
-                get { return ConfigurationManager.AppSettings["LogFilesPath"]; }
-            }
+            public static string LogFilesPath => ConfigurationManager.AppSettings[nameof(LogFilesPath)];
         }
 
         public static class Api
         {
-            public static string ApiUrl
-            {
-                get { return ConfigurationManager.AppSettings["ApiUrl"]; }
-            }
-            public static int RetryCount
-            {
-                get { return int.Parse(ConfigurationManager.AppSettings["RetryCount"]); }
-            }
+            public static string ApiUrl => ConfigurationManager.AppSettings[nameof(ApiUrl)];
 
-            public static string AuthorizationKey
-            {
-                get { return ConfigurationManager.AppSettings["AuthorizationKey"]; }
-            }
+            public static int RetryCount => int.Parse(ConfigurationManager.AppSettings[nameof(RetryCount)]);
+
+            public static string AuthorizationKey => ConfigurationManager.AppSettings[nameof(AuthorizationKey)];
         }
 
         public static class Settings
         {
-            public static string EmailOnFail
-            {
-                get { return ConfigurationManager.AppSettings["EmailOnFail"]; }
-            }
+            public static string EmailOnFail => ConfigurationManager.AppSettings[nameof(EmailOnFail)];
 
-            public static bool LogMissingProperties
-            {
-                get { return bool.Parse(ConfigurationManager.AppSettings["LogMissingProperties"] ?? "false"); }
-            }
+            public static bool LogMissingProperties => bool.Parse(ConfigurationManager.AppSettings[nameof(LogMissingProperties)] ?? bool.FalseString);
 
-            public static string SMTPServer
-            {
-                get { return ConfigurationManager.AppSettings["SMTPServer"]; }
-            }
+            public static string SMTPServer => ConfigurationManager.AppSettings[nameof(SMTPServer)];
         }
     }
 }

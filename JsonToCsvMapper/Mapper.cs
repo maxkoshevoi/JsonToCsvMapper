@@ -47,12 +47,12 @@ namespace JsonToCsvMapper
 
         public static StreamWriter RecreateFile(string filePath, Encoding encoding = null)
         {
-            encoding = encoding ?? Encoding.UTF8;
+            encoding ??= Encoding.UTF8;
 
             File.Delete(filePath);
             File.Create(filePath).Close();
 
-            return new StreamWriter(File.Open(filePath, FileMode.Append, FileAccess.Write), encoding);
+            return new(File.Open(filePath, FileMode.Append, FileAccess.Write), encoding);
         }
 
         /// <summary>
@@ -72,10 +72,10 @@ namespace JsonToCsvMapper
         public bool AppendEntity(JObject entity)
         {
             bool skipLine = false;
-            List<string> resultLines = new List<string>();
-            List<MappingOptions> multipleMappingHeaders = new List<MappingOptions>();
-            List<List<List<string>>> multipleDataHeaders = new List<List<List<string>>>();
-            StringBuilder line = new StringBuilder();
+            List<string> resultLines = new();
+            List<MappingOptions> multipleMappingHeaders = new();
+            List<List<List<string>>> multipleDataHeaders = new();
+            StringBuilder line = new();
             foreach (string header in mapping.Keys)
             {
                 string value;
@@ -117,7 +117,7 @@ namespace JsonToCsvMapper
                     {
                         if (multipleDataHeaders.Count == 0)
                         {
-                            multipleDataHeaders.Add(new List<List<string>>());
+                            multipleDataHeaders.Add(new());
                         }
                         value = "{d0_" + multipleDataHeaders[0].Count + "}";
                         multipleDataHeaders[0].Add(values);
@@ -130,7 +130,7 @@ namespace JsonToCsvMapper
             if (!skipLine)
             {
                 string strLine = line.ToString();
-                List<string> linesToAdd = new List<string>();
+                List<string> linesToAdd = new();
 
                 // Line is complete
                 if (multipleMappingHeaders.Count == 0 && multipleDataHeaders.Count == 0)
@@ -173,7 +173,7 @@ namespace JsonToCsvMapper
                                 {
                                     if (multipleDataHeaders.Count == multipleDataHeadersMax)
                                     {
-                                        multipleDataHeaders.Add(new List<List<string>>());
+                                        multipleDataHeaders.Add(new());
                                     }
                                     value = "{d" + multipleDataHeadersMax + "_" + multipleDataHeaders[multipleDataHeadersMax].Count + "}";
                                     multipleDataHeaders[multipleDataHeadersMax].Add(values);
@@ -191,7 +191,7 @@ namespace JsonToCsvMapper
                 // Line has multiple results per column
                 if (multipleDataHeaders.Count > 0)
                 {
-                    List<string> linesWithDataToAdd = new List<string>();
+                    List<string> linesWithDataToAdd = new();
                     foreach (string protoLine in linesToAdd)
                     {
                         bool isFound = false;
@@ -234,7 +234,7 @@ namespace JsonToCsvMapper
         private List<string> GetNonConstValue(JObject product, MappingOptions mappingOption, int headerIndex, out bool skipLine)
         {
 
-            List<string> value = new List<string>();
+            List<string> value = new();
             skipLine = false;
             JToken jsonValue = product[mappingOption.MappingHeaders[headerIndex]];
 
