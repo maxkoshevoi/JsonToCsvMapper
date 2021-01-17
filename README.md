@@ -196,24 +196,31 @@ private static OrderedDictionary GetMediaLinksMapping()
         { "ProductId", MappingOptions.BuildMapping("PrimaryID") },
         { "MediaType", MappingOptions.BuildMappingList(
             new List<string> { "imagesType", "datasheetType" },
-            action: (value) => {
-                value = value.ToUpper();
-                if (new string[] { "JPEG", "JPG", "PNG", "GIF" }.Contains(value))
+            action: type => 
+            {
+                type = type.ToUpper();
+                if (new string[] { "JPEG", "JPG", "PNG", "GIF" }.Contains(type))
                 {
-                    value = "IMG";
+                    type = "IMG";
                 }
-                return value;
-            }, arrayItemIndex: null)
+                return type;
+            },
+            arrayItemIndex: null)
         },
-        { "Order", MappingOptions.BuildMappingList(new List<string> 
+        { "Order", MappingOptions.BuildMappingList(
+            new List<string> 
             { 
                 "imageSortOrder", "datasheetSortOrder"
-            }, arrayItemIndex: null)
+            },
+            arrayItemIndex: null)
         },
-        { "Url", MappingOptions.BuildMappingList(new List<string> 
+        { "Url", MappingOptions.BuildMappingList(
+            new List<string> 
             { 
                 "imageURL", "datasheetURL"
-            }, null, arrayItemIndex: null)
+            },
+            null,
+            arrayItemIndex: null)
         },
     };
     return mapping;
