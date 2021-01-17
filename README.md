@@ -6,12 +6,12 @@ Powerful and versatile json to csv mapper
 To create mapper simply pass mapping and filepath to it. You also can specify `fieldSeperator` and if you want to `printHeaders` on first line of the file.
 
 ```cs
-   Mapper mainMapper = new Mapper(GetCatalogfileMapping(), Path.Combine(catalogfilePath, "Catalog.txt"));
+   Mapper mainMapper = new(GetCatalogfileMapping(), Path.Combine(catalogfilePath, "Catalog.txt"));
 ```
 ### Using mapper
 
 - You can print column headers manually at any time using `PrintHeaders()` method (e.g. if you want to print them at the end of the file or after every N rows).
-- To mapp new JSON entity to CSV call `AppendEntity(JObject entity)` method.
+- To map new JSON entity to CSV call `AppendEntity(JObject entity)` method.
 
 ## Mapping tutorial
 
@@ -44,7 +44,7 @@ We can achieve that via this mapping:
 ```cs
 private static OrderedDictionary GetCatalogfileMapping()
 {
-    OrderedDictionary mapping = new OrderedDictionary()
+    OrderedDictionary mapping = new()
     {
         { "Product Code", MappingOptions.BuildMapping("PrimaryID", null, reportIfMissing: true) },
         { "Description", MappingOptions.BuildMapping("description") },
@@ -67,9 +67,9 @@ private static OrderedDictionary GetCatalogfileMapping()
 - In case JSON entity doesn't contain some information that is needed in output CSV file, we can use `BuildConstant` to hard code it. E.g. `Alias` property in the example above.
 
 ##### Things to note about `BuildMapping`:
-1. `BuildMapping` accepts several arguments. First one is `JSON property name` value of witch will be taken (it could be primitive value or array). If you want to write values from several JSON properties into single CSV column, use `BuildMappingList` method.
+1. `BuildMapping` accepts several arguments. First one is `JSON property name` value of which will be taken (it could be primitive value or array). If you want to write values from several JSON properties into single CSV column, use `BuildMappingList` method.
 2. Next is `defaultValue`. This is placeholder in case if value (or property itself) is not found. 
-If you enter **null** as default value, whole JSON entity will be skipped if value of this property won't be found. E.g. if there is no `PrimaryID` property in JSON file above, nothing will be written in ontput CSV file, but if there is no `TradePrice` property, in output CSV it's value will be **0**.
+If you enter **null** as default value, whole JSON entity will be skipped if value of this property won't be found. E.g. if there is no `PrimaryID` property in JSON file above, nothing will be written in output CSV file, but if there is no `TradePrice` property, in output CSV it's value will be **0**.
 3. `action`. It's action that is performed on property value before writing it to output.
 E.g. in our JSON file weight is in grams, but we need it in kilograms in our CSV file, so we've added small converter for that.
 Also, this argument can be used for converting *Date* or *Boolean* vales to different format and many other things.
@@ -114,19 +114,21 @@ Mapping:
 ```cs
 private static OrderedDictionary GetAttributesMapping()
 {
-    OrderedDictionary mapping = new OrderedDictionary()
+    OrderedDictionary mapping = new()
     {
         { "ProductID", MappingOptions.BuildMapping("PrimaryID") },
         { "Name", MappingOptions.BuildConstantList(new List<string>()
             {
                 "Type", "Manufacturer", "Color", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
                 "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable",
-            }) },
+            })
+        },
         { "Value", MappingOptions.BuildMappingList(new List<string>()
             {
                 "Type", "Manufacturer", "Color", "Size", "On Promotion", "Dimensions", "Weight", "Eco-Aware", "Warranty",
                 "Recycled Percentage", "Recyclable", "Biodegradable", "Re-fillable",
-            }, null) },
+            }, null)
+        },
         { "Sequence", MappingOptions.BuildConstant("1") }, // For sorting
     };
     return mapping;
@@ -189,7 +191,7 @@ Mapping:
 ```cs
 private static OrderedDictionary GetMediaLinksMapping()
 {
-    OrderedDictionary mapping = new OrderedDictionary()
+    OrderedDictionary mapping = new()
     {
         { "ProductId", MappingOptions.BuildMapping("PrimaryID") },
         { "MediaType", MappingOptions.BuildMappingList(
@@ -201,15 +203,18 @@ private static OrderedDictionary GetMediaLinksMapping()
                     value = "IMG";
                 }
                 return value;
-            }, arrayItemIndex: null) },
+            }, arrayItemIndex: null)
+        },
         { "Order", MappingOptions.BuildMappingList(new List<string> 
             { 
                 "imageSortOrder", "datasheetSortOrder"
-            }, arrayItemIndex: null) },
+            }, arrayItemIndex: null)
+        },
         { "Url", MappingOptions.BuildMappingList(new List<string> 
             { 
                 "imageURL", "datasheetURL"
-            }, null, arrayItemIndex: null) },
+            }, null, arrayItemIndex: null)
+        },
     };
     return mapping;
 }
